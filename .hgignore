@@ -1,5 +1,7 @@
 syntax:glob
 
+.vscode/
+
 DebugLib/
 DebugExe/
 DebugExt/
@@ -14,7 +16,6 @@ lib/m114*
 lib/bip*
 docs/
 
-src/ext*
 src/xxx/
 src/aig/au/
 src/aig/ssm/

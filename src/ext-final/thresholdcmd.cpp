@@ -3,7 +3,9 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 
-namespace {
+vector<Th_Node*> th_list;
+int globalref = 1;
+
 static int Lsv_CommandAig2Th( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Lsv_CommandCollapse( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Lsv_CommandPrintTh( Abc_Frame_t * pAbc, int argc, char ** argv );
@@ -81,7 +83,7 @@ int Lsv_CommandCollapse(Abc_Frame_t* pAbc, int argc, char** argv) {
         Abc_Print(-1, "Empty network.\n");
         return 1;
     }
-    Lsv_collapse(th_list);
+    Lsv_collapse(bound);
     return 0;
 
 usage:
@@ -92,7 +94,7 @@ usage:
     return 1;
 }
 
-void Lsv_PrintTh(vector<Th_Node*>& th_list) {
+void Lsv_PrintTh() {
     return;
 }
 
@@ -112,7 +114,7 @@ int Lsv_CommandPrintTh(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_Print(-1, "Empty network.\n");
     return 1;
   }
-  Lsv_PrintTh(th_list);
+  Lsv_PrintTh();
   return 0;
 
 usage:
@@ -121,8 +123,3 @@ usage:
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
 }
-
-} // end of namespace
-
-
-

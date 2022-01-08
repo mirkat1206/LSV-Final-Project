@@ -29,10 +29,10 @@ struct Th_Node_
     
 };
 
-vector<Th_Node*> th_list;
-int th_globalref;
+extern vector<Th_Node*> th_list;
+extern int th_globalref;
 
 extern void Lsv_aig2Th(Abc_Ntk_t*);
-extern void Lsv_collapse(vector<Th_Node*>&);
+extern void Lsv_collapse(int max_bound);
 
 #endif
