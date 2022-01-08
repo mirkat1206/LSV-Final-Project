@@ -60,7 +60,7 @@ usage:
 
 int Lsv_CommandCollapse(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
-    int c, bound;
+    int c, bound = -1;
     Extra_UtilGetoptReset();
     while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
         switch (c) {

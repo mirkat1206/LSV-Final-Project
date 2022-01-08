@@ -5,7 +5,7 @@ bool Lsv_skip_node(Th_Node* p) {
         return true;
     if (p->type != TH_NODE) // PI, PO, CONST
         return true;
-    if (p->ref == th_globalref) // marked
+    if (p->ref == globalref) // marked
         return true;
     // const node
     int max = 0, min = 0, size = p->fanins.size();
@@ -41,16 +41,18 @@ void Lsv_collapse(int max_bound) {
     for (int bound = 1; bound <= max_bound; ++bound) {
         // 01: unmark every v of V;
         int size = th_list.size();
-        for (int i = 0; i < size; ++i)
+        for (int i = 0; i < size; ++i) {
             v = th_list[i];
             // 
-            v->ref = 1 - th_globalref;
+            v->ref = 1 - globalref;
+        }
         // 02: while somve v of V is unmarked
         bool flag;
         do {
             flag = false;
             // 03: foreach v of V
             for (int i = 0; i < size; ++i) {
+                v = th_list[i];
                 // some special node cannot be merged
                 if (Lsv_skip_node(v))  continue;
                 // 04: foreach fanin u of v
@@ -65,8 +67,7 @@ void Lsv_collapse(int max_bound) {
                         Lsv_collapse2fanouts(u);
                     }
                     // 11: V := V \ {u}
-                    temp = th_list[j];
-                    th_list[j] = 
+                    
                 }
 
             }
