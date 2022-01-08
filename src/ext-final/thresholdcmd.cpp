@@ -48,7 +48,7 @@ int Lsv_CommandAig2Th(Abc_Frame_t* pAbc, int argc, char** argv) {
         pNtk = Abc_NtkStrash( pNtk, 0, 0, 0 );
         assert (pNtk != NULL);
     }
-    Lsv_aig2Th(pNtk);
+    Lsv_aig2th(pNtk);
     return 0;
 
 usage:

@@ -1,34 +1,55 @@
 #include "threshold.h"
 
-bool Lsv_skip_node(Th_Node* p) {
-    if (p == NULL)  // NULL node
+bool Lsv_skip_node(Th_Node* v) {
+    if (v == NULL)  // NULL node
         return true;
-    if (p->type != TH_NODE) // PI, PO, CONST
+    if (v->type != TH_NODE) // PI, PO, CONST
         return true;
-    if (p->ref == globalref) // marked
+    if (v->ref == globalref) // marked
         return true;
     // const node
-    int max = 0, min = 0, size = p->fanins.size();
+    int max = 0, min = 0, size = v->fanins.size();
     for (int i = 0; i < size; ++i) {
-        if (p->weights[i] > 0)  max += p->weights[i];
-        if (p->weights[i] < 0)  max += p->weights[i];
+        if (v->weights[i] > 0)  max += v->weights[i];
+        if (v->weights[i] < 0)  max += v->weights[i];
         // 0-weight node    //TODO: why???
-        if (p->weights[i] == 0)
+        if (v->weights[i] == 0)
             return true;
     }
-    return (max < p->value || min >= p->value);
+    return (max < v->value || min >= v->value);
 }
 
-bool Lsv_is_collapsable(Th_Node* p) {
+bool Lsv_is_collapsable(Th_Node* u) {
     //TODO
     return true;
 }
 
-void Lsv_collapse2fanouts(Th_Node* u) {
-    // 07: foreach fanout t of  u
-    // 08: w := CollapseNode(u,t)
-    // 09: unmark w
-    // 10: V := V \ {t} U {w}
+int Lsv_get_fanin_num(Th_Node* out, Th_Node* in) {
+    int size = out->fanins.size();
+    for (int i = 0; i < size; ++i) {
+        if (out->fanins[i] == in)
+            return i;
+    }
+    return 0;
+}
+
+
+bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
+    // 06: if u can be collapsed to all of its fanouts
+    if (Lsv_is_collapsable(u) == false)
+        return 0;
+    // 07: foreach fanout t of u
+    Th_Node* t;
+    int size = u->fanouts.size();
+    for (int i = 0; i < size; ++i) {
+        t = u->fanouts[i];
+        //TODO
+        // 08: w := CollapseNode(u,t)
+        Lsv_get_fanin_num(t, u);
+        // 09: unmark w
+        // 10: V := V \ {t} U {w}
+
+    }
 }
 
 void Lsv_collapse(int max_bound) {
@@ -37,7 +58,6 @@ void Lsv_collapse(int max_bound) {
     // *** set a bound to the fanout size and iteratively increases the bound ***
     Th_Node* v;
     Th_Node* u;
-    Th_Node* temp;
     for (int bound = 1; bound <= max_bound; ++bound) {
         // 01: unmark every v of V;
         int size = th_list.size();
@@ -46,7 +66,7 @@ void Lsv_collapse(int max_bound) {
             // 
             v->ref = 1 - globalref;
         }
-        // 02: while somve v of V is unmarked
+        // 02: while some v of V is unmarked
         bool flag;
         do {
             flag = false;
@@ -62,18 +82,15 @@ void Lsv_collapse(int max_bound) {
                     // 05: if |fanouts(u)| <= B
                     if (u->fanouts.size() > bound)
                         continue;
-                    // 06: if u can be collapsed to all of its fanouts
-                    if (Lsv_is_collapsable(u)) {
-                        Lsv_collapse2fanouts(u);
+                    if (Lsv_collapse2fanouts(u, bound)) {
+                        flag = true;
+                        //TODO
                     }
                     // 11: V := V \ {u}
                     
                 }
-
             }
-        } while(flag);
-        
-        
+        } while(flag);        
         // 12: continue
         // 13: if u is the last fanin of v
         // 14: mark v

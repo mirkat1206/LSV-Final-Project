@@ -13,7 +13,7 @@ Th_Node* createNode(Th_Node_Type _type, unsigned _id) {
 	return thObj;
 }
 
-void Lsv_aig2Th(Abc_Ntk_t* pNtk) {
+void Lsv_aig2th(Abc_Ntk_t* pNtk) {
     
     Th_Node *thNode;
     Abc_Obj_t *pObj, *pFanout;

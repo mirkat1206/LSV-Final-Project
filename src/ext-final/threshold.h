@@ -1,7 +1,7 @@
 #ifndef THRESHOLD_H_
 #define THRESHOLD_H_
 
-#include "../base/abc/abc.h"
+#include "base/abc/abc.h"
 #include <vector>
 
 using namespace std;
@@ -30,7 +30,7 @@ struct Th_Node_
 extern vector<Th_Node*> th_list;
 extern int globalref;
 
-extern void Lsv_aig2Th(Abc_Ntk_t*);
+extern void Lsv_aig2th(Abc_Ntk_t*);
 extern void Lsv_collapse(int max_bound);
 
 #endif
