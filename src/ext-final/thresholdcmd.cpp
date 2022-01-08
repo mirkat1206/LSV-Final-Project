@@ -3,7 +3,9 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 
-namespace {
+vector<Th_Node*> th_list;
+int th_globalref;
+
 static int Lsv_CommandAig2Th( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Lsv_CommandCollapse( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Lsv_CommandPrintTh( Abc_Frame_t * pAbc, int argc, char ** argv );
@@ -121,8 +123,6 @@ usage:
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
 }
-
-} // end of namespace
 
 
 
