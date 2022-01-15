@@ -2,8 +2,11 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include <queue>
 
 vector<Th_Node*> th_list;
+vector<Th_Node*> th_PI_list;
+
 int globalref = 1;
 
 static int Lsv_CommandAig2Th( Abc_Frame_t * pAbc, int argc, char ** argv );
@@ -40,7 +43,7 @@ int Lsv_CommandAig2Th(Abc_Frame_t* pAbc, int argc, char** argv) {
         Abc_Print(-1, "Empty network.\n");
         return 1;
     }
-    printf("\tMake network comb and AIG...\n");
+    printf("Make network comb and AIG...\n");
     if ( !Abc_NtkIsComb( pNtk ) ) {
         Abc_NtkMakeComb( pNtk , 0 ); 
     }
@@ -95,6 +98,72 @@ usage:
 }
 
 void Lsv_PrintTh() {
+    printf("Print threshold logic ckt in topological order...\n");
+    int i, j;
+    int _numPi = 0, _numPo = 0, _numNode = 0;
+    queue<Th_Node*> pr_queue;
+    // reset ref
+    th_list[0]->printref = true; // const1 Node
+    for (i = 0; i < th_list[0]->fanouts.size(); i++) {
+        pr_queue.push(th_list[0]->fanouts[i]);
+    }
+    for (i = 1; i < th_list.size(); i++) {
+        th_list[i]->printref = false;
+    }
+
+    // push PI's fanout
+    for (i = 0; i < th_PI_list.size(); i++) {
+        th_PI_list[i]->printref = true;
+        for (j = 0; j < th_PI_list[i]->fanouts.size(); j++) {
+            pr_queue.push(th_PI_list[i]->fanouts[j]);
+        }
+    }
+    _numPi = th_PI_list.size();
+
+    
+    // print in topological order
+    Th_Node* temp;
+    bool ready;
+    while (!pr_queue.empty()) {
+        temp = pr_queue.front();
+        pr_queue.pop();
+        if (!temp->printref) {
+            // check if all its fanin are already print
+            ready = true;
+            for (i = 0; i < temp->fanins.size(); i++) {
+                if (!temp->fanins[i]->printref) {
+                    ready = false; break;
+                }
+            }
+            if (ready) {
+                if (temp->type == TH_PO) { 
+                    _numPo++; 
+                }
+                else if (temp->type == TH_NODE) { 
+                    _numNode++; 
+                    for (j = 0; j < temp->fanouts.size(); j++) {
+                        pr_queue.push(temp->fanouts[j]);
+                    }
+                }
+                else {
+                    printf("Find something wrong: id %d -> type %d\n", temp->id, temp->type);
+                }
+
+                temp->printref = true;
+            } else {
+                pr_queue.push(temp);
+            }
+        } 
+    }
+
+    // print total state
+    printf("================================ \n");
+    printf("Summary: \n");
+    printf("Number of Pi: %d\n", _numPi);
+    printf("Number of Po: %d\n", _numPo);
+    printf("Number of Node: %d\n", _numNode);
+    printf("================================ \n");
+
     return;
 }
 

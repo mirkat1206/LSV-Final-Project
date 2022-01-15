@@ -25,6 +25,7 @@ struct Th_Node_
     vector<Th_Node_*> fanins;
     vector<Th_Node_*> fanouts;
     int value;
+    bool printref; // for print func purpose
 };
 
 typedef struct KL_Pair_ KL_Pair;
@@ -36,6 +37,7 @@ struct KL_Pair_
 };
 
 extern vector<Th_Node*> th_list;
+extern vector<Th_Node*> th_PI_list;
 extern int globalref;
 
 extern void Lsv_aig2th(Abc_Ntk_t*);
