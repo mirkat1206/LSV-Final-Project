@@ -9,19 +9,30 @@ Th_Node* createNode(Th_Node_Type _type, unsigned _id) {
 	thObj->fanins     = vector<Th_Node*>();
 	thObj->fanouts    = vector<Th_Node*>();
 	thObj->value      = 0;
+    thObj->printref   = false;
     th_list.push_back(thObj);
+    if (_type == TH_PI) th_PI_list.push_back(thObj);
 	return thObj;
 }
 
 void Lsv_aig2th(Abc_Ntk_t* pNtk) {
-    
+    printf("======== aigth ========\n");
     Th_Node *thNode;
-    Abc_Obj_t *pObj, *pFanout;
+    Abc_Obj_t *pObj, *pFanout, *pConst1;
     map<int,  Th_Node*> _id2ThNode;
+    th_list.clear();
 	int i, j;
 
     /* create threshold node */
-    // create Ci
+    // create const1 node
+    // printf("create Const1 ...\n");
+    pConst1 = Abc_AigConst1(pNtk);
+	thNode = createNode(TH_CONST1, Abc_ObjId(pConst1));
+    // printf("Const1 id: %d\n", thNode->id);
+    _id2ThNode[thNode->id] = thNode;
+
+    // create Co
+    // printf("create Ci ...\n");
     Abc_NtkForEachCi(pNtk,pObj,i) {
         thNode = createNode(TH_PI, Abc_ObjId(pObj));
         // printf("Ci id: %d\n", thNode->id);
@@ -29,28 +40,26 @@ void Lsv_aig2th(Abc_Ntk_t* pNtk) {
     }
 
     // create Co
+    // printf("create Co ...\n");
     Abc_NtkForEachCo(pNtk,pObj,i) {
         thNode = createNode(TH_PO, Abc_ObjId(pObj));
         // printf("Co id: %d\n", thNode->id);
-         _id2ThNode[thNode->id] = thNode;
+        _id2ThNode[thNode->id] = thNode;
     }
 
     // create Node
+    // printf("create Node ...\n");
     Abc_NtkForEachNode(pNtk,pObj,i) {
         thNode = createNode(TH_NODE, Abc_ObjId(pObj));
         // printf("node id: %d\n", thNode->id);
         _id2ThNode[thNode->id] = thNode;
     }
 
-    // create const1 node
-    pObj = Abc_AigConst1(pNtk);
-	thNode = createNode(TH_CONST1, Abc_ObjId(pObj));
-    // printf("Const1 id: %d\n", thNode->id);
-    _id2ThNode[thNode->id] = thNode;
-
     /* connect fanins & fanouts */
+    // printf("Connect ...\n");
     // connect const1 Fanout
-    Abc_ObjForEachFanout(pObj,pFanout,i) {
+    thNode = th_list[0];
+    Abc_ObjForEachFanout(pConst1,pFanout,i) {
         thNode->fanouts.push_back(_id2ThNode[Abc_ObjId(pFanout)]);
     }
 
@@ -108,6 +117,7 @@ void Lsv_aig2th(Abc_Ntk_t* pNtk) {
             thNode->fanouts.push_back(_id2ThNode[Abc_ObjId(pFanout)]);
         }
 	}
+    printf("======== finish aig2th ========\n");
 
     /* determine level */
 }
