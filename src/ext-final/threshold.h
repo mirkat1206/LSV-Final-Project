@@ -25,7 +25,7 @@ struct Th_Node_
     vector<Th_Node_*> fanins;
     vector<Th_Node_*> fanouts;
     int value;
-    bool printref; // for print func purpose
+    bool printref;
 };
 
 typedef struct KL_Pair_ KL_Pair;

@@ -10,7 +10,7 @@ bool Lsv_is_constant(Th_Node* v) {
     return (max < v->value || min >= v->value);
 }
 
-KL_Pair* Lsv_calculatKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_invert) {
+KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_invert) {
     // constant node
 
 }
@@ -89,7 +89,7 @@ bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {
         weight *= -1;
         f_invert = true;
     }
-    KL_Pair* kl_pair = Lsv_calculatKL(u, v, n_fanin, weight, f_invert);
+    KL_Pair* kl_pair = Lsv_calculateKL(u, v, n_fanin, weight, f_invert);
 }
 
 bool Lsv_is_collapsable(Th_Node* u, int bound) {
@@ -126,6 +126,10 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
 
     }
     return true;
+}
+
+void Lsv_delete(Th_Node* u) {
+
 }
 
 void Lsv_collapse(int max_bound) {
