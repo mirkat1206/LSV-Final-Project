@@ -102,7 +102,10 @@ bool Lsv_is_collapsable(Th_Node* u, int bound) {
     int size = u->fanouts.size();
     for (int i = 0; i < size; ++i) {
         v = u->fanouts[i];
-        if (v->ref == globalref || v->type != TH_NODE || !Lsv_is_pair_collapsable(u, v)) {
+        // some special node cannot be merged
+        if (Lsv_skip_node(v))
+            return false;
+        if (!Lsv_is_pair_collapsable(u, v)) {
             return false;
         }
     }
@@ -111,31 +114,31 @@ bool Lsv_is_collapsable(Th_Node* u, int bound) {
 
 bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
     // 06: if u can be collapsed to all of its fanouts
-    if (u->type != TH_NODE || Lsv_is_collapsable(u, bound) == false)
+    if (Lsv_is_collapsable(u, bound) == false)
         return false;    
     // 07: foreach fanout t of u
-    int index, i, j;
+    int index;
     Th_Node* t;
     int size = u->fanouts.size();
     KL_Pair* pair;
-    for (i = 0; i < size; ++i) {
+    for (int i = 0; i < size; ++i) {
         t = u->fanouts[i];
         // ===== 08: w := CollapseNode(u,t) ===== //
         // calc KL
         index = Lsv_get_fanin_num(t, u);
         pair = Lsv_calculateKL(u, t, index, t->weights[index], 0);
         // multiple l to all weight except fanin of u
-        for (j = 0; j < t->weights.size(); j++) {
+        for (int j = 0; j < t->weights.size(); j++) {
             t->weights[j] *= pair->l;
         }
         // update new value T
-        t->value = pair->k*u->value + pair->l*(t->value-t->weights[index]);
+        t->value = pair->k * u->value + pair->l * (t->value - t->weights[index]);
         // remove origin fanin of u
-        t->fanins.erase(t->fanins.begin()+index);
-        t->weights.erase(t->weights.begin()+index);
+        t->fanins.erase(t->fanins.begin() + index);
+        t->weights.erase(t->weights.begin() + index);
         // connect u's fanin to t's fanin and weight*=k
-        for (j=0; j < u->fanins.size(); j++) {
-            t->weights.push_back(u->weights[j]*pair->k);
+        for (int j = 0; j < u->fanins.size(); j++) {
+            t->weights.push_back(u->weights[j] * pair->k);
             t->fanins.push_back(u->fanins[j]);
         }
         // ===== 09:unmark w(t) ===== //
@@ -172,16 +175,16 @@ void Lsv_collapse(int max_bound) {
                 // some special node cannot be merged
                 if (Lsv_skip_node(v))  continue;
                 // 04: foreach fanin u of v
-                int size1 = v->fanins.size();
-                for (int j = 0; j < size1; ++j) {
+                for (int j = 0; j < v->fanins.size(); ++j) {
                     u = v->fanins[j];
+                    // some special node cannot be merged
+                    if (Lsv_skip_node(u))  continue;
                     // 05: if |fanouts(u)| <= B
                     if (u->fanouts.size() > bound)
                         continue;
                     // 06 ~ 11
                     if (Lsv_collapse2fanouts(u, bound)) {
                         f_has_collapsed = true;
-                        // 11: V := V \ {u} -> redundant?
                         for (i = 0; i < th_list.size(); i++) {
                             if (th_list[i] == u) {
                                 delete u;
