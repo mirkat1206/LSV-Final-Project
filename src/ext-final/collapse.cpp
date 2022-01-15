@@ -1,18 +1,8 @@
 #include "threshold.h"
 
 // ------------------
-bool Lsv_is_constant(Th_Node* v) {
-    int max = 0, min = 0, size = v->fanins.size();
-    for (int i = 0; i < size; ++i) {
-        if (v->weights[i] > 0)  max += v->weights[i];
-        if (v->weights[i] < 0)  min += v->weights[i];
-    }
-    return (max < v->value || min >= v->value);
-}
-
 KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_invert) {
-    // constant node
-
+    // TODO
 }
 
 // ------------------
@@ -79,7 +69,7 @@ Th_Node* Lsv_invert(Th_Node* u) {
     return inv_u;
 }
 
-bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {
+bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {  //TODO
     /* u: fanin <--> v: fanout */
     int n_fanin = Lsv_get_fanin_num(u, v);
     int weight  = v->weights[n_fanin];
@@ -124,6 +114,7 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
     for (int i = 0; i < size; ++i) {
         t = u->fanouts[i];
         // ===== 08: w := CollapseNode(u,t) ===== //
+        //TODO: may invert node
         // calc KL
         index = Lsv_get_fanin_num(t, u);
         pair = Lsv_calculateKL(u, t, index, t->weights[index], 0);
@@ -146,10 +137,6 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
         // 10: V := V \ {t} U {w} -> maybe redundant?
     }
     return true;
-}
-
-void Lsv_delete(Th_Node* u) {
-
 }
 
 void Lsv_collapse(int max_bound) {
