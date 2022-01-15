@@ -183,12 +183,25 @@ void Lsv_collapse(int max_bound) {
                     if (u->fanouts.size() > bound)
                         continue;
                     // 06 ~ 11
+                    int v_ori_size = v->fanins.size()-1; // -1 for u
                     if (Lsv_collapse2fanouts(u, bound)) {
                         f_has_collapsed = true;
-                        for (i = 0; i < th_list.size(); i++) {
-                            if (th_list[i] == u) {
+                        // 11: V := V \ {u} -> redundant?
+                        for (int k = 0; k < th_list.size(); k++) {
+                            if (th_list[k] == u) {
                                 delete u;
-                                th_list.erase(th_list.begin()+i);
+                                th_list.erase(th_list.begin()+k);
+                            }
+                        }
+                        // Note: consider nondisjoint fanins for v
+                        for (int k = v_ori_size; k < v->fanins.size(); k++) {
+                            for (int l = 0; l < v_ori_size; l++) {
+                                if (v->fanins[k] == v->fanins[l]) { // merge k to l
+                                    v->weights[l] += v->weights[k]; // summed up
+                                    v->weights.erase(v->weights.begin()+k); // remove fanin of k
+                                    v->fanins.erase(v->fanins.begin()+k);
+                                    k--; break;
+                                }
                             }
                         }
                         // 12: continue to next v
