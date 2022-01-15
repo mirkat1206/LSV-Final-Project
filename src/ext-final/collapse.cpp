@@ -10,7 +10,7 @@ bool Lsv_is_constant(Th_Node* v) {
     return (max < v->value || min >= v->value);
 }
 
-KL_Pair* Lsv_calculatKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_invert) {
+KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_invert) {
     // constant node
 
 }
@@ -89,7 +89,7 @@ bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {
         weight *= -1;
         f_invert = true;
     }
-    KL_Pair* kl_pair = Lsv_calculatKL(u, v, n_fanin, weight, f_invert);
+    KL_Pair* kl_pair = Lsv_calculateKL(u, v, n_fanin, weight, f_invert);
 }
 
 bool Lsv_is_collapsable(Th_Node* u, int bound) {
@@ -114,16 +114,33 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
     if (u->type != TH_NODE || Lsv_is_collapsable(u, bound) == false)
         return false;    
     // 07: foreach fanout t of u
+    int index, i, j;
     Th_Node* t;
     int size = u->fanouts.size();
-    for (int i = 0; i < size; ++i) {
+    KL_Pair* pair;
+    for (i = 0; i < size; ++i) {
         t = u->fanouts[i];
-        //TODO
-        // 08: w := CollapseNode(u,t)
-        Lsv_get_fanin_num(t, u);
-        // 09: unmark w
-        // 10: V := V \ {t} U {w}
-
+        // ===== 08: w := CollapseNode(u,t) ===== //
+        // calc KL
+        index = Lsv_get_fanin_num(t, u);
+        pair = Lsv_calculateKL(u, t, index, t->weights[index], 0);
+        // multiple l to all weight except fanin of u
+        for (j = 0; j < t->weights.size(); j++) {
+            t->weights[j] *= pair->l;
+        }
+        // update new value T
+        t->value = pair->k*u->value + pair->l*(t->value-t->weights[index]);
+        // remove origin fanin of u
+        t->fanins.erase(t->fanins.begin()+index);
+        t->weights.erase(t->weights.begin()+index);
+        // connect u's fanin to t's fanin and weight*=k
+        for (j=0; j < u->fanins.size(); j++) {
+            t->weights.push_back(u->weights[j]*pair->k);
+            t->fanins.push_back(u->fanins[j]);
+        }
+        // ===== 09:unmark w(t) ===== //
+        t->ref = 1 - globalref;
+        // 10: V := V \ {t} U {w} -> maybe redundant?
     }
     return true;
 }
@@ -157,11 +174,16 @@ void Lsv_collapse(int max_bound) {
                     // 05: if |fanouts(u)| <= B
                     if (u->fanouts.size() > bound)
                         continue;
-                    // 06 ~ 10
-                    if (Lsv_collapse2fanouts(u, bound)) {   //TODO
+                    // 06 ~ 11
+                    if (Lsv_collapse2fanouts(u, bound)) {
                         f_has_collapsed = true;
-                        // 11: V := V \ {u}
-                        Lsv_delete(u);  //TODO
+                        // 11: V := V \ {u} -> redundant?
+                        for (i = 0; i < th_list.size(); i++) {
+                            if (th_list[i] == u) {
+                                delete u;
+                                th_list.erase(th_list.begin()+i);
+                            }
+                        }
                         // 12: continue to next v
                         break;
                     }
