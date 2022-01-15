@@ -27,6 +27,14 @@ struct Th_Node_
     int value;
 };
 
+typedef struct KL_Pair_ KL_Pair;
+
+struct KL_Pair_
+{
+    int k;
+    int l;
+};
+
 extern vector<Th_Node*> th_list;
 extern int globalref;
 

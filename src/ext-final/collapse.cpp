@@ -1,5 +1,21 @@
 #include "threshold.h"
 
+// ------------------
+bool Lsv_is_constant(Th_Node* v) {
+    int max = 0, min = 0, size = v->fanins.size();
+    for (int i = 0; i < size; ++i) {
+        if (v->weights[i] > 0)  max += v->weights[i];
+        if (v->weights[i] < 0)  min += v->weights[i];
+    }
+    return (max < v->value || min >= v->value);
+}
+
+KL_Pair* Lsv_calculatKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_invert) {
+    // constant node
+
+}
+
+// ------------------
 bool Lsv_skip_node(Th_Node* v) {
     if (v == NULL)  // NULL node
         return true;
@@ -11,7 +27,7 @@ bool Lsv_skip_node(Th_Node* v) {
     int max = 0, min = 0, size = v->fanins.size();
     for (int i = 0; i < size; ++i) {
         if (v->weights[i] > 0)  max += v->weights[i];
-        if (v->weights[i] < 0)  max += v->weights[i];
+        if (v->weights[i] < 0)  min += v->weights[i];
         // 0-weight node    //TODO: why???
         if (v->weights[i] == 0)
             return true;
@@ -19,25 +35,84 @@ bool Lsv_skip_node(Th_Node* v) {
     return (max < v->value || min >= v->value);
 }
 
-bool Lsv_is_collapsable(Th_Node* u) {
-    //TODO
+Th_Node* Lsv_copy(Th_Node* u) {
+    Th_Node* new_u = new Th_Node();
+    new_u->id = u->id;
+    new_u->ref = u->ref;
+    new_u->type = u->type;
+    int size;
+    size = u->weights.size();
+    for (int i = 0; i < size; ++i) {
+        new_u->weights.push_back(u->weights[i]);
+    }
+    size = u->fanins.size();
+    for (int i = 0; i < size; ++i) {
+        new_u->fanins.push_back(u->fanins[i]);
+    }
+    size = u->fanouts.size();
+    for (int i = 0; i < size; ++i) {
+        new_u->fanouts.push_back(u->fanouts[i]);
+    }
+    new_u->value = u->value;
+    return new_u;
+}
+
+int Lsv_get_fanin_num(Th_Node* u, Th_Node* v) {
+    /* u: fanin <--> v: fanout */
+    int size = u->fanins.size();
+    for (int i = 0; i < size; ++i) {
+        if (u->fanins[i] == v)
+            return i;
+    }
+    assert(0);
+    return -1;
+}
+
+Th_Node* Lsv_invert(Th_Node* u) {
+    // make a inverted copy
+    Th_Node* inv_u = Lsv_copy(u);
+    // invert the copy
+    int size = inv_u->weights.size();
+    for (int i = 0; i < size; ++i) 
+        inv_u->weights[i] *= -1;
+    inv_u->value = 1 - inv_u->value;
+    return inv_u;
+}
+
+bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {
+    /* u: fanin <--> v: fanout */
+    int n_fanin = Lsv_get_fanin_num(u, v);
+    int weight  = v->weights[n_fanin];
+    bool f_invert  = false;
+    if (weight < 0) {
+        u = Lsv_invert(u);
+        weight *= -1;
+        f_invert = true;
+    }
+    KL_Pair* kl_pair = Lsv_calculatKL(u, v, n_fanin, weight, f_invert);
+}
+
+bool Lsv_is_collapsable(Th_Node* u, int bound) {
+    /* u: fanin <--> v: fanout */
+    if (bound == -1);   // no limit
+    else if (u->fanouts.size() > bound)
+        return false;
+    
+    Th_Node* v;
+    int size = u->fanouts.size();
+    for (int i = 0; i < size; ++i) {
+        v = u->fanouts[i];
+        if (v->ref == globalref || v->type != TH_NODE || !Lsv_is_pair_collapsable(u, v)) {
+            return false;
+        }
+    }
     return true;
 }
 
-int Lsv_get_fanin_num(Th_Node* out, Th_Node* in) {
-    int size = out->fanins.size();
-    for (int i = 0; i < size; ++i) {
-        if (out->fanins[i] == in)
-            return i;
-    }
-    return 0;
-}
-
-
 bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
     // 06: if u can be collapsed to all of its fanouts
-    if (Lsv_is_collapsable(u) == false)
-        return 0;
+    if (u->type != TH_NODE || Lsv_is_collapsable(u, bound) == false)
+        return false;    
     // 07: foreach fanout t of u
     Th_Node* t;
     int size = u->fanouts.size();
@@ -50,6 +125,7 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
         // 10: V := V \ {t} U {w}
 
     }
+    return true;
 }
 
 void Lsv_collapse(int max_bound) {
@@ -63,13 +139,12 @@ void Lsv_collapse(int max_bound) {
         int size = th_list.size();
         for (int i = 0; i < size; ++i) {
             v = th_list[i];
-            // 
             v->ref = 1 - globalref;
         }
         // 02: while some v of V is unmarked
-        bool flag;
+        bool f_has_collapsed;
         do {
-            flag = false;
+            f_has_collapsed = false;
             // 03: foreach v of V
             for (int i = 0; i < size; ++i) {
                 v = th_list[i];
@@ -82,18 +157,22 @@ void Lsv_collapse(int max_bound) {
                     // 05: if |fanouts(u)| <= B
                     if (u->fanouts.size() > bound)
                         continue;
-                    if (Lsv_collapse2fanouts(u, bound)) {
-                        flag = true;
-                        //TODO
+                    // 06 ~ 10
+                    if (Lsv_collapse2fanouts(u, bound)) {   //TODO
+                        f_has_collapsed = true;
+                        // 11: V := V \ {u}
+                        Lsv_delete(u);  //TODO
+                        // 12: continue to next v
+                        break;
                     }
-                    // 11: V := V \ {u}
-                    
+                    // 13: if u is the last fanin of v
+                    if (j == size - 1) {
+                        // 14: mark v
+                        v->ref = globalref;
+                    }                    
                 }
             }
-        } while(flag);        
-        // 12: continue
-        // 13: if u is the last fanin of v
-        // 14: mark v
-        // 15: return (V,E)
+        } while(f_has_collapsed);        
     }
+    // 15: return (V,E)
 }
