@@ -16,7 +16,7 @@ Th_Node* createNode(Th_Node_Type _type, unsigned _id) {
 }
 
 void Lsv_aig2th(Abc_Ntk_t* pNtk) {
-    printf("======== aigth ========\n");
+    printf("Convert aig to threshold...\n");
     Th_Node *thNode;
     Abc_Obj_t *pObj, *pFanout, *pConst1;
     map<int,  Th_Node*> _id2ThNode;
@@ -117,7 +117,7 @@ void Lsv_aig2th(Abc_Ntk_t* pNtk) {
             thNode->fanouts.push_back(_id2ThNode[Abc_ObjId(pFanout)]);
         }
 	}
-    printf("======== finish aig2th ========\n");
+    printf("Finish!\n");
 
     /* determine level */
 }

@@ -43,7 +43,7 @@ int Lsv_CommandAig2Th(Abc_Frame_t* pAbc, int argc, char** argv) {
         Abc_Print(-1, "Empty network.\n");
         return 1;
     }
-    printf("\tMake network comb and AIG...\n");
+    printf("Make network comb and AIG...\n");
     if ( !Abc_NtkIsComb( pNtk ) ) {
         Abc_NtkMakeComb( pNtk , 0 ); 
     }
@@ -98,7 +98,7 @@ usage:
 }
 
 void Lsv_PrintTh() {
-    printf("======== print threshold logic ckt in topological order ========\n");
+    printf("Print threshold logic ckt in topological order...\n");
     int i, j;
     int _numPi = 0, _numPo = 0, _numNode = 0;
     queue<Th_Node*> pr_queue;
