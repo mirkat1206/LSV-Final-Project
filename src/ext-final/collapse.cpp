@@ -168,20 +168,31 @@ void Lsv_collapse(int max_bound) {
                 // some special node cannot be merged
                 if (Lsv_skip_node(v))  continue;
                 // 04: foreach fanin u of v
-                int size1 = v->fanins.size();
-                for (int j = 0; j < size1; ++j) {
+                for (int j = 0; j < v->fanins.size(); ++j) {
                     u = v->fanins[j];
                     // 05: if |fanouts(u)| <= B
                     if (u->fanouts.size() > bound)
                         continue;
                     // 06 ~ 11
+                    int v_ori_size = v->fanins.size()-1; // -1 for u
                     if (Lsv_collapse2fanouts(u, bound)) {
                         f_has_collapsed = true;
                         // 11: V := V \ {u} -> redundant?
-                        for (i = 0; i < th_list.size(); i++) {
-                            if (th_list[i] == u) {
+                        for (int k = 0; k < th_list.size(); k++) {
+                            if (th_list[k] == u) {
                                 delete u;
-                                th_list.erase(th_list.begin()+i);
+                                th_list.erase(th_list.begin()+k);
+                            }
+                        }
+                        // Note: consider nondisjoint fanins for v
+                        for (int k = v_ori_size; k < v->fanins.size(); k++) {
+                            for (int l = 0; l < v_ori_size; l++) {
+                                if (v->fanins[k] == v->fanins[l]) { // merge k to l
+                                    v->weights[l] += v->weights[k]; // summed up
+                                    v->weights.erase(v->weights.begin()+k); // remove fanin of k
+                                    v->fanins.erase(v->fanins.begin()+k);
+                                    k--; break;
+                                }
                             }
                         }
                         // 12: continue to next v
