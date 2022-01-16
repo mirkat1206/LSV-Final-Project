@@ -77,12 +77,18 @@ Th_Node* createTempNode() {
 	return thObj;
 }
 
-Abc_Obj_t* thg2mux_recur(Th_Node*v) {
-    
-}
+Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
+    // special case: inverter or buffer
+    if (v->fanins.size() == 1) {
+        if (v->weights[0] == 1 && v->value == 1) { // buffer
+            assert(th2aigNode.find(v->fanins[0]) != th2aigNode.end());
+            return th2aigNode.find(v->fanins[0])->second;
+        } else if (v->weights[0] == -1 && !v->value) { // inverter
+            
+        }
+    }
 
-Abc_Obj_t* convertTLG2MUX(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
-    // line 01~04 : special case -> never happened!
+    // line 01~04 : special case -> const1 & const2
     // line 05 : find max abs weight input
     Th_Node* max_weight_node = v->fanins[0];
     int max_weight = v->weights[0];
@@ -124,8 +130,10 @@ Abc_Obj_t* convertTLG2MUX(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
     }
 
     // line 07~09 : set controlling input/data zero input/data one input
+    assert(th2aigNode.find(max_weight_node) != th2aigNode.end());
     root = Abc_AigMux(pNtk_th2mux->pManFunc, th2aigNode[max_weight_node], thg2mux_recur(pos_v), thg2mux_recur(neg_v));
     // line 10 : set primary output
+    return root;
 }
 
 void Lsv_th2mux() {
@@ -154,7 +162,7 @@ void Lsv_th2mux() {
     // for each TLG: call convertTLGMUX
     for (i = 0; i < th_list.size(); i++) {
         if (th_list[i]->type == TH_NODE) {
-            th2aigNode[th_list[i]] = convertTLG2MUX(th_list[i], pNtk_th2mux);
+            th2aigNode[th_list[i]] = thg2mux_recur(th_list[i], pNtk_th2mux);
         }
     }
 
