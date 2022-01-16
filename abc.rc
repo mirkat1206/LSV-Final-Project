@@ -147,3 +147,4 @@ alias recadd3     "st; rec_add3; b; rec_add3; dc2; rec_add3; if -K 8; bidec; st;
 alias rben "read EPFL-benchmark-suite/random_control/ctrl.aig"
 alias a2t lsv_aig2th 
 alias pth lsv_print_th
+alias col lsv_collapse

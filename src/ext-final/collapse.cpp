@@ -221,8 +221,7 @@ void Lsv_collapse(int max_bound) {
     Th_Node* u;
     for (int bound = 1; bound <= max_bound; ++bound) {
         // 01: unmark every v of V;
-        int size = th_list.size();
-        for (int i = 0; i < size; ++i) {
+        for (int i = 0; th_list.size(); ++i) {
             v = th_list[i];
             v->ref = 1 - globalref;
         }
@@ -231,7 +230,7 @@ void Lsv_collapse(int max_bound) {
         do {
             f_has_collapsed = false;
             // 03: foreach v of V
-            for (int i = 0; i < size; ++i) {
+            for (int i = 0; i < th_list.size(); ++i) {
                 v = th_list[i];
                 // some special node cannot be merged
                 if (Lsv_skip_node(v))  continue;
@@ -269,7 +268,7 @@ void Lsv_collapse(int max_bound) {
                         break;
                     }
                     // 13: if u is the last fanin of v
-                    if (j == size - 1) {
+                    if (j == v->fanins.size()- 1) {
                         // 14: mark v
                         v->ref = globalref;
                     }                    
