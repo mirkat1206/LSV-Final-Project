@@ -6,17 +6,19 @@
 
 vector<Th_Node*> th_list;
 vector<Th_Node*> th_PI_list;
-
 int globalref = 1;
 
 static int Lsv_CommandAig2Th( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Lsv_CommandCollapse( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Lsv_CommandPrintTh( Abc_Frame_t * pAbc, int argc, char ** argv );
+static int Lsv_CommandTh2Mux( Abc_Frame_t * pAbc, int argc, char ** argv );
+
 
 void th_init(Abc_Frame_t* pAbc) {
     Cmd_CommandAdd(pAbc, "LSV", "lsv_aig2th", Lsv_CommandAig2Th, 0);
     Cmd_CommandAdd(pAbc, "LSV", "lsv_collapse", Lsv_CommandCollapse, 0);
     Cmd_CommandAdd(pAbc, "LSV", "lsv_print_th", Lsv_CommandPrintTh, 0);
+    Cmd_CommandAdd(pAbc, "LSV", "lsv_th2mux", Lsv_CommandTh2Mux, 0);
 }
 
 void th_destroy(Abc_Frame_t* pAbc) {}
@@ -26,6 +28,32 @@ Abc_FrameInitializer_t frame_initializer = {th_init, th_destroy};
 struct PackageRegistrationManager {
     PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer); }
 } lsvPackageRegistrationManager;
+
+int Lsv_CommandTh2Mux(Abc_Frame_t* pAbc, int argc, char** argv) {
+    Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+    int c;
+    Extra_UtilGetoptReset();
+    while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+        switch (c) {
+        case 'h':
+            goto usage;
+        default:
+            goto usage;
+        }
+    }
+    if (!pNtk) {
+        Abc_Print(-1, "Empty network.\n");
+        return 1;
+    }
+    Lsv_th2mux();
+    return 0;
+
+usage:
+    Abc_Print(-2, "usage: lsv_th2mux [-h]\n");
+    Abc_Print(-2, "\t        convert current threshold ckt to mux network\n");
+    Abc_Print(-2, "\t-h    : print the command usage\n");
+    return 1;
+}
 
 int Lsv_CommandAig2Th(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);

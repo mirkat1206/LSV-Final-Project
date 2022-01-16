@@ -43,5 +43,6 @@ extern int globalref;
 extern void Lsv_aig2th(Abc_Ntk_t*);
 extern void Lsv_collapse(int);
 extern void Lsv_PrintTh(bool);
+extern void Lsv_th2mux();
 
 #endif
