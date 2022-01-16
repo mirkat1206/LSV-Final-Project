@@ -80,5 +80,6 @@
         "numbers": "cpp",
         "semaphore": "cpp",
         "stop_token": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": true
 }

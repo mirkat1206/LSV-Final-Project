@@ -1,11 +1,5 @@
 #include "threshold.h"
 
-// ------------------
-KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_invert) {
-    // TODO
-}
-
-// ------------------
 bool Lsv_skip_node(Th_Node* v) {
     if (v == NULL)  // NULL node
         return true;
@@ -68,6 +62,23 @@ Th_Node* Lsv_invert(Th_Node* u) {
     inv_u->value = 1 - inv_u->value;
     return inv_u;
 }
+
+// ------------------
+KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_invert) {
+    assert(!Lsv_skip_node(u));
+    assert(!Lsv_skip_node(v));
+    // TODO
+    // 1. check conditions
+    bool condition[2];
+    condition[0] = false;
+    condition[1] = false;
+    condition[2] = false;
+    
+    // 2. compute coefficients
+    // 3. compute K and L
+}
+
+// ------------------
 
 bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {  //TODO
     /* u: fanin <--> v: fanout */
