@@ -63,10 +63,34 @@ void sort_th() {
     return;
 }
 
+
+
 Abc_Obj_t* convertTLG2MUX(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
-    // line 01~04 : special case
+    // line 01~04 : special case -> never happened!
     // line 05 : find max abs weight input
+    Th_Node* max_weight_node = v->fanins[0];
+    int max_weight = v->weights[0];
+
+    int max = 0, min = 0, size = v->fanins.size();
+    int i;
+    for (i = 0; i < size; ++i) {
+        if (v->weights[i] > 0)  max += v->weights[i];
+        if (v->weights[i] < 0)  min += v->weights[i];
+
+        if (v->weights[i] > max_weight) {
+            max_weight_node = v->fanins[i];
+            max_weight = v->weights[i];
+        }
+        // TBD: 0-weight node ??
+    }
+    if (max < v->value) { //const0
+        return Abc_ObjNot(Abc_AigConst1(pNtk_th2mux));
+    } else if (min > v->value) { // const1
+        return Abc_AigConst1(pNtk_th2mux);
+    }
+
     // line 06 : create a mux gate 
+    
     // line 07 : set controlling input
     // line 08 : data zero input
     // line 09 : data one input
