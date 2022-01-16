@@ -135,7 +135,7 @@ KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_
 
 // ------------------
 
-bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {  //TODO
+bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {
     /* u: fanin <--> v: fanout */
     int n_fanin = Lsv_get_fanin_num(u, v);
     int weight  = v->weights[n_fanin];
@@ -147,6 +147,7 @@ bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {  //TODO
     }
     KL_Pair* kl_pair = Lsv_calculateKL(u, v, n_fanin, weight, f_invert);
     if (kl_pair->l == -1 && kl_pair->k == -1) return false;
+    else return true;
 }
 
 bool Lsv_is_collapsable(Th_Node* u, int bound) {
@@ -176,15 +177,21 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
     // 07: foreach fanout t of u
     int index;
     Th_Node* t;
+    bool f_invert;
     int size = u->fanouts.size();
     KL_Pair* pair;
     for (int i = 0; i < size; ++i) {
         t = u->fanouts[i];
         // ===== 08: w := CollapseNode(u,t) ===== //
-        //TODO: may invert node
-        // calc KL
+        // calc KL (need to check invert condition)
         index = Lsv_get_fanin_num(t, u);
-        pair = Lsv_calculateKL(u, t, index, t->weights[index], 0);
+        f_invert  = false;
+        if (t->weights[index] < 0) {
+            u = Lsv_invert(u);
+            t->weights[index] *= -1;
+            f_invert = true;
+        }
+        pair = Lsv_calculateKL(u, t, index, t->weights[index], f_invert);
         // multiple l to all weight except fanin of u
         for (int j = 0; j < t->weights.size(); j++) {
             t->weights[j] *= pair->l;
