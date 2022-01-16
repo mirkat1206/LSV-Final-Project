@@ -4,6 +4,8 @@
 #include <queue>
 #include <map>
 
+map<Th_Node*, Abc_Obj_t*> th2aigNode;
+
 void sort_th() {
     vector<Th_Node*> th_list_copy;
     th_list_copy.assign(th_list.begin(), th_list.end());
@@ -63,13 +65,28 @@ void sort_th() {
     return;
 }
 
+Th_Node* createTempNode() {
+    Th_Node *thObj    = new Th_Node();
+    thObj->id         = 0;
+	thObj->type       = TH_UNKNOWN;
+	thObj->weights    = vector<int>();
+	thObj->fanins     = vector<Th_Node*>();
+	thObj->fanouts    = vector<Th_Node*>();
+	thObj->value      = 0;
+    thObj->printref   = false;
+	return thObj;
+}
 
+Abc_Obj_t* thg2mux_recur(Th_Node*v) {
+    
+}
 
 Abc_Obj_t* convertTLG2MUX(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
     // line 01~04 : special case -> never happened!
     // line 05 : find max abs weight input
     Th_Node* max_weight_node = v->fanins[0];
     int max_weight = v->weights[0];
+    int max_weight_index = 0;
 
     int max = 0, min = 0, size = v->fanins.size();
     int i;
@@ -80,6 +97,7 @@ Abc_Obj_t* convertTLG2MUX(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
         if (v->weights[i] > max_weight) {
             max_weight_node = v->fanins[i];
             max_weight = v->weights[i];
+            max_weight_index = i;
         }
         // TBD: 0-weight node ??
     }
@@ -90,15 +108,27 @@ Abc_Obj_t* convertTLG2MUX(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
     }
 
     // line 06 : create a mux gate 
-    
-    // line 07 : set controlling input
-    // line 08 : data zero input
-    // line 09 : data one input
+    Abc_Obj_t* root;
+    // positive & negative cofactor
+    Th_Node* pos_v = createTempNode();
+    Th_Node* neg_v = createTempNode();
+    pos_v->value = v->value-max_weight;
+    neg_v->value = v->value;
+    for (i = 0; i < v->fanins.size(); i++) {
+        if (i != max_weight_index) {
+            pos_v->fanins.push_back(v->fanins[i]);
+            pos_v->weights.push_back(v->weights[i]);
+            neg_v->fanins.push_back(v->fanins[i]);
+            neg_v->weights.push_back(v->weights[i]);
+        }
+    }
+
+    // line 07~09 : set controlling input/data zero input/data one input
+    root = Abc_AigMux(pNtk_th2mux->pManFunc, th2aigNode[max_weight_node], thg2mux_recur(pos_v), thg2mux_recur(neg_v));
     // line 10 : set primary output
 }
 
 void Lsv_th2mux() {
-    map<Th_Node*, Abc_Obj_t*> th2aigNode;
     int i;
     // sort th_list in topologocal order
     sort_th();
