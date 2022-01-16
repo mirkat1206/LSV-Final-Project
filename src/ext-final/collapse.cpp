@@ -1,4 +1,5 @@
 #include "threshold.h"
+#include <iostream>
 
 bool Lsv_skip_node(Th_Node* v) {
     if (v == NULL)  // NULL node
@@ -43,9 +44,9 @@ Th_Node* Lsv_copy(Th_Node* u) {
 
 int Lsv_get_fanin_num(Th_Node* u, Th_Node* v) {
     /* u: fanin <--> v: fanout */
-    int size = u->fanins.size();
+    int size = v->fanins.size();
     for (int i = 0; i < size; ++i) {
-        if (u->fanins[i] == v)
+        if (v->fanins[i] == u)
             return i;
     }
     assert(0);
@@ -73,7 +74,7 @@ KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_
     assert(!Lsv_skip_node(v));
     // 1. check conditions
     bool condition[2];
-    condition[0] = false; // 
+    condition[0] = false;
     condition[1] = false;
     
     int Tv = (f_invert) ? (v->value + weight) : (v->value);
@@ -109,20 +110,20 @@ KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_
     pair->l = -1;
     if (condition[0] && condition[1]) { // inq1~3
         if (flag1 && flag2) {
-            pair->l = std::max(find_int((max_fu_Tu+1), (1-(max_fu_Tu*(b1-1)))), find_int(Tu_min_fu, (b1-((b1-1)*Tu_min_fu))));
-            pair->k = pair->l*(b1-1)+1;
+            pair->l = std::max(find_int((max_fu_Tu + 1), (1-(max_fu_Tu*(b1 - 1)))), find_int(Tu_min_fu, (b1 - ((b1 - 1)*Tu_min_fu))));
+            pair->k = pair->l*(b1 - 1) + 1;
         } 
     } else if (condition[0]) { // inq1,3
         if (flag1) {
-            pair->l = find_int((max_fu_Tu+1), (1-(max_fu_Tu*(b1-1))));
-            pair->k = pair->l*(b1-1)+1;
+            pair->l = find_int((max_fu_Tu + 1), (1 - (max_fu_Tu*(b1 - 1))));
+            pair->k = pair->l*(b1 - 1) + 1;
         } else {
             printf("calc KL condition weird!");
         }
     } else if (condition[1]) { // inq 2,3
         if (flag2) {
-            pair->l = find_int(Tu_min_fu, (b1-((b1-1)*Tu_min_fu)));
-            pair->k = pair->l*(b1-1)+1;
+            pair->l = find_int(Tu_min_fu, (b1 - ((b1 - 1)*Tu_min_fu)));
+            pair->k = pair->l*(b1 - 1) + 1;
         } else {
             printf("calc KL condition weird!");
         }
@@ -136,6 +137,9 @@ KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_
 // ------------------
 
 bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {
+    assert(!Lsv_skip_node(u));
+    assert(!Lsv_skip_node(v));
+
     /* u: fanin <--> v: fanout */
     int n_fanin = Lsv_get_fanin_num(u, v);
     int weight  = v->weights[n_fanin];
@@ -170,7 +174,15 @@ bool Lsv_is_collapsable(Th_Node* u, int bound) {
     return true;
 }
 
+int get_fanout_num(Th_Node* in, Th_Node* out) {
+    for (int i=0; i < in->fanouts.size(); i++) {
+        if (in->fanouts[i] == out) return i;
+    }
+    return -1;
+}
+
 bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
+    assert(!Lsv_skip_node(u));
     // 06: if u can be collapsed to all of its fanouts
     if (Lsv_is_collapsable(u, bound) == false)
         return false;    
@@ -180,11 +192,12 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
     bool f_invert;
     int size = u->fanouts.size();
     KL_Pair* pair;
-    for (int i = 0; i < size; ++i) {
+    int i, j;
+    for (i = 0; i < size; ++i) { // u->t
         t = u->fanouts[i];
         // ===== 08: w := CollapseNode(u,t) ===== //
         // calc KL (need to check invert condition)
-        index = Lsv_get_fanin_num(t, u);
+        index = Lsv_get_fanin_num(u, t);
         f_invert  = false;
         if (t->weights[index] < 0) {
             u = Lsv_invert(u);
@@ -193,7 +206,7 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
         }
         pair = Lsv_calculateKL(u, t, index, t->weights[index], f_invert);
         // multiple l to all weight except fanin of u
-        for (int j = 0; j < t->weights.size(); j++) {
+        for (j = 0; j < t->weights.size(); j++) {
             t->weights[j] *= pair->l;
         }
         // update new value T
@@ -201,8 +214,12 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
         // remove origin fanin of u
         t->fanins.erase(t->fanins.begin() + index);
         t->weights.erase(t->weights.begin() + index);
-        // connect u's fanin to t's fanin and weight*=k
-        for (int j = 0; j < u->fanins.size(); j++) {
+        // u's fanin's fanout -> t
+        for (j = 0; j < u->fanins.size(); j++) {
+            u->fanins[j]->fanouts[get_fanout_num(u->fanins[j],u)] = t;
+        }
+        // connect u's fanin <- t's fanin and weight*=k
+        for (j = 0; j < u->fanins.size(); j++) {
             t->weights.push_back(u->weights[j] * pair->k);
             t->fanins.push_back(u->fanins[j]);
         }
@@ -219,9 +236,11 @@ void Lsv_collapse(int max_bound) {
     // *** set a bound to the fanout size and iteratively increases the bound ***
     Th_Node* v;
     Th_Node* u;
+    Lsv_PrintTh();
     for (int bound = 1; bound <= max_bound; ++bound) {
+        cout << "bound: " << bound << endl;
         // 01: unmark every v of V;
-        for (int i = 0; th_list.size(); ++i) {
+        for (int i = 0; i < th_list.size(); ++i) {
             v = th_list[i];
             v->ref = 1 - globalref;
         }
@@ -232,6 +251,7 @@ void Lsv_collapse(int max_bound) {
             // 03: foreach v of V
             for (int i = 0; i < th_list.size(); ++i) {
                 v = th_list[i];
+                cout << "v id: " <<  v->id << endl;
                 // some special node cannot be merged
                 if (Lsv_skip_node(v))  continue;
                 // 04: foreach fanin u of v
@@ -249,8 +269,8 @@ void Lsv_collapse(int max_bound) {
                         // 11: V := V \ {u} -> redundant?
                         for (int k = 0; k < th_list.size(); k++) {
                             if (th_list[k] == u) {
-                                delete u;
                                 th_list.erase(th_list.begin()+k);
+                                delete u;
                                 break;
                             }
                         }
@@ -265,8 +285,7 @@ void Lsv_collapse(int max_bound) {
                                 }
                             }
                         }
-                        // 12: continue to next v
-                        break;
+                        // 12: continue to next v -> redundant
                     }
                     // 13: if u is the last fanin of v
                     if (j == v->fanins.size()- 1) {
@@ -275,7 +294,8 @@ void Lsv_collapse(int max_bound) {
                     }                    
                 }
             }
-        } while(f_has_collapsed);        
+        } while(f_has_collapsed);   
+        Lsv_PrintTh();     
     }
     // 15: return (V,E)
 }

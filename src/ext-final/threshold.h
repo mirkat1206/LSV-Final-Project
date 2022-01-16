@@ -42,5 +42,6 @@ extern int globalref;
 
 extern void Lsv_aig2th(Abc_Ntk_t*);
 extern void Lsv_collapse(int max_bound);
+extern void Lsv_PrintTh();
 
 #endif
