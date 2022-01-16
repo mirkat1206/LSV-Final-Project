@@ -279,7 +279,7 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
         t->weights.erase(t->weights.begin() + index);
         // u's fanin's fanout add t
         // Note: need to check if t is already u's fanin's fanout
-        for (j = 0; j < u->fanins.size() && !dup; j++) {
+        for (j = 0; j < u->fanins.size(); j++) {
             dup = false;
             for (k = 0; k < u->fanins[j]->fanouts.size(); k++) {
                 if (u->fanins[j]->fanouts[k] == t) {
@@ -297,6 +297,7 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
         // ===== 09:unmark w(t) ===== //
         t->ref = 1 - globalref;
         // 10: V := V \ {t} U {w} -> maybe redundant?
+        delete pair;
     }
     // remove all u->fanins->fanout u
     for (i = 0; i < u->fanins.size(); i++) {
@@ -307,6 +308,7 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
             }
         }
     }
+    delete invert_u;
     return true;
 }
 
@@ -346,8 +348,15 @@ void Lsv_collapse(int max_bound) {
                     // cout << "line 267" << endl;
                     if (Lsv_collapse2fanouts(u, bound)) {
                         f_has_collapsed = true;
-                        cout << "remove" << endl;
-                        print_node(u);
+                        // cout << "remove in bound: " << bound << endl;
+                        // print_node(u);
+                        // if (u->fanins.size() < 3) {
+                        //     cout << "print node: " << bound << endl;
+                        //     for (int a = 0 ; a < u->fanins.size(); a++) {
+                        //         print_node(u->fanins[a]);
+                        //     }
+                        // }
+                        // Lsv_PrintTh(0);
                         // 11: V := V \ {u} -> redundant?
                         for (int k = 0; k < th_list.size(); k++) {
                             if (th_list[k] == u) {

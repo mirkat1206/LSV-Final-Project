@@ -145,8 +145,14 @@ alias recadd3     "st; rec_add3; b; rec_add3; dc2; rec_add3; if -K 8; bidec; st;
 
 # for final project
 alias rben "read EPFL-benchmark-suite/random_control/ctrl.aig"
-alias rtest "read collapse/benchmark/iscas_itc/b18.blif"
+alias read1 "read collapse/benchmark/iscas_itc/s35932.blif"
+alias read2 "read collapse/benchmark/iscas_itc/s38417.blif"
+alias read3 "read collapse/benchmark/iscas_itc/s38584.blif"
+
+
 alias a2t lsv_aig2th 
 alias pth lsv_print_th
 alias col lsv_collapse
-alias run "rtest; comb; a2t; pth; col"
+alias r1 "read1; comb; a2t; pth; col; q"
+alias r2 "read2; comb; a2t; pth; col; q"
+alias r3 "read3; comb; a2t; pth; col; q"

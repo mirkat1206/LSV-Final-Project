@@ -122,7 +122,8 @@ void Lsv_PrintTh(bool flag) {
 
     
     // print in topological order
-    printf("Print threshold logic ckt in topological order...\n");
+    // printf("Print threshold logic ckt in topological order...\n");
+    printf("Print summary...\n");
     Th_Node* temp;
     bool ready;
     while (!pr_queue.empty()) {
