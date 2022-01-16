@@ -86,6 +86,8 @@ Th_Node* Lsv_copy(Th_Node* u) {
 
 int Lsv_get_fanin_num(Th_Node* u, Th_Node* v) {
     /* u: fanin <--> v: fanout */
+    // cout << "Lsv_get_fanin_num" << endl;
+    // print_node(u); print_node(v);
     int size = v->fanins.size();
     for (int i = 0; i < size; ++i) {
         if (v->fanins[i] == u)
@@ -159,16 +161,18 @@ KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_
         if (flag1) {
             pair->l = find_int((max_fu_Tu + 1), (1 - (max_fu_Tu*(b1 - 1))));
             pair->k = pair->l*(b1 - 1) + 1;
-        } else {
-            printf("calc KL condition weird!");
-        }
+        } 
+        // else {
+        //     printf("calc KL condition weird!");
+        // }
     } else if (condition[1]) { // inq 2,3
         if (flag2) {
             pair->l = find_int(Tu_min_fu, (b1 - ((b1 - 1)*Tu_min_fu)));
             pair->k = pair->l*(b1 - 1) + 1;
-        } else {
-            printf("calc KL condition weird!");
-        }
+        } 
+        // else {
+        //     printf("calc KL condition weird!");
+        // }
     } else { // inq 3 only
         pair->l = 1;
         pair->k = b1;
@@ -193,9 +197,8 @@ bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {
         f_invert = true;
     }
     else new_u = u;
-    cout << "line 196" << endl;
     KL_Pair* kl_pair = Lsv_calculateKL(new_u, v, n_fanin, weight, f_invert);
-    delete new_u;
+    if (f_invert) delete new_u;
     if (kl_pair->l == -1 && kl_pair->k == -1) return false;
     else return true;
 }
@@ -232,20 +235,19 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
     assert(!Lsv_skip_node(u));
     // 06: if u can be collapsed to all of its fanouts
     if (Lsv_is_collapsable(u, bound) == false)
-        return false;    
+        return false;  
     // 07: foreach fanout t of u
     int index;
     Th_Node *t;
-    bool f_invert;
-    int size = u->fanouts.size();
+    bool f_invert, dup;
     KL_Pair* pair;
-    int i, j;
+    int i, j, k;
     Th_Node *invert_u = Lsv_invert(u);
 
+    int size = u->fanouts.size();
     for (i = 0; i < size; ++i) { // u->t
         t = u->fanouts[i];
-        assert(!Lsv_skip_node(t));
-        cout << "merge u(" << u->id << ") to t(" << t->id << ")" << endl;
+        // cout << i << ": merge u(" << u->id << ") to t(" << t->id << ")" << endl;
         // print_node(u); print_node(t);
         // ===== 08: w := CollapseNode(u,t) ===== //
         // calc KL (need to check invert condition) and decide u invert or not
@@ -256,8 +258,7 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
             t->weights[index] *= -1;
             f_invert = true;
         }
-
-        cout << "line 256: " << f_invert << endl;
+        // cout << "line 256: " << f_invert << endl;
         if (f_invert) {
             assert(!Lsv_skip_node(t));
             pair = Lsv_calculateKL(invert_u, t, index, t->weights[index], f_invert);
@@ -276,9 +277,17 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
         // remove origin fanin of u
         t->fanins.erase(t->fanins.begin() + index);
         t->weights.erase(t->weights.begin() + index);
-        // u's fanin's fanout -> t
-        for (j = 0; j < u->fanins.size(); j++) {
-            u->fanins[j]->fanouts[get_fanout_num(u->fanins[j],u)] = t;
+        // u's fanin's fanout add t
+        // Note: need to check if t is already u's fanin's fanout
+        for (j = 0; j < u->fanins.size() && !dup; j++) {
+            dup = false;
+            for (k = 0; k < u->fanins[j]->fanouts.size(); k++) {
+                if (u->fanins[j]->fanouts[k] == t) {
+                    dup=true;
+                    break;
+                }
+            }
+            if (!dup) u->fanins[j]->fanouts.push_back(t);
         }
         // connect u's fanin <- t's fanin and weight*=k
         for (j = 0; j < u->fanins.size(); j++) {
@@ -288,9 +297,16 @@ bool Lsv_collapse2fanouts(Th_Node* u, int bound) {
         // ===== 09:unmark w(t) ===== //
         t->ref = 1 - globalref;
         // 10: V := V \ {t} U {w} -> maybe redundant?
-        // print_node(t);
     }
-    // cout << "return Lsv_collapse2fanouts" << endl;
+    // remove all u->fanins->fanout u
+    for (i = 0; i < u->fanins.size(); i++) {
+        for (j = 0; j < u->fanins[i]->fanouts.size(); j++) {
+            if (u->fanins[i]->fanouts[j] == u) {
+                u->fanins[i]->fanouts.erase(u->fanins[i]->fanouts.begin()+j);
+                break;
+            }
+        }
+    }
     return true;
 }
 
@@ -315,13 +331,11 @@ void Lsv_collapse(int max_bound) {
             // 03: foreach v of V
             for (int i = 0; i < th_list.size(); ++i) {
                 v = th_list[i];
-                cout << "v id: " <<  v->id << endl;
                 // some special node cannot be merged
                 if (Lsv_skip_node(v))  continue;
                 // 04: foreach fanin u of v
                 for (int j = 0; j < v->fanins.size(); ++j) {
                     u = v->fanins[j];
-                    print_node(u);
                     // some special node cannot be merged
                     if (Lsv_skip_node(u))  continue;
                     // 05: if |fanouts(u)| <= B
@@ -331,9 +345,9 @@ void Lsv_collapse(int max_bound) {
                     int v_ori_size = v->fanins.size()-1; // -1 for u
                     // cout << "line 267" << endl;
                     if (Lsv_collapse2fanouts(u, bound)) {
+                        f_has_collapsed = true;
                         cout << "remove" << endl;
                         print_node(u);
-                        f_has_collapsed = true;
                         // 11: V := V \ {u} -> redundant?
                         for (int k = 0; k < th_list.size(); k++) {
                             if (th_list[k] == u) {
@@ -353,7 +367,6 @@ void Lsv_collapse(int max_bound) {
                                 }
                             }
                         }
-                        Lsv_PrintTh(0);
                         // 12: continue to next v -> redundant
                     }
                     // 13: if u is the last fanin of v

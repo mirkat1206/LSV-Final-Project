@@ -99,7 +99,6 @@ usage:
 }
 
 void Lsv_PrintTh(bool flag) {
-    printf("In printTh\n");
     int i, j;
     int _numPi = 0, _numPo = 0, _numNode = 0;
     queue<Th_Node*> pr_queue;
