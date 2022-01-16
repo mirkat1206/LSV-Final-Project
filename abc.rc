@@ -148,3 +148,4 @@ alias rben "read EPFL-benchmark-suite/random_control/ctrl.aig"
 alias a2t lsv_aig2th 
 alias pth lsv_print_th
 alias col lsv_collapse
+alias run "rben; a2t; pth; col"

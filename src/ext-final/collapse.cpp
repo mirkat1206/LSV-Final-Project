@@ -251,6 +251,7 @@ void Lsv_collapse(int max_bound) {
                             if (th_list[k] == u) {
                                 delete u;
                                 th_list.erase(th_list.begin()+k);
+                                break;
                             }
                         }
                         // Note: consider nondisjoint fanins for v
