@@ -84,20 +84,28 @@ KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_
         condition[0] = true;
     if (min <= Tu - weight - 1)
         condition[1] = true;
-        
+
     // ===== coefficients ===== //
-    int max_fu = 0, min_fv = 0, b1;
     int i;
+    int max_fu = 0, min_fv = 0;
     // max{fu+} & min{fu+}
     for (i = 0; i < u->weights.size(); i++) {
         if (u->weights[i] > 0) max_fu += u->weights[i];
         else min_fv += u->weights[i]; // <=0
     } 
-    // 2. compute coefficients
+    int b1 = v->weights[n_fanin];
 
     // 3. compute K and L
-    if (condition[0]) { // phi-1
+    KL_Pair* pair = new KL_Pair();
+    if (condition[0] && condition[1]) { // inq1~3
 
+    } else if (condition[0]) { // inq1,3
+    
+    } else if (condition[1]) { // inq 2,3
+
+    } else { // inq 3 only
+        pair->l = 1;
+        pair->k = b1;
     }
 }
 
