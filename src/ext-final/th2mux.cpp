@@ -78,13 +78,13 @@ Th_Node* createTempNode() {
 }
 
 Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
-    // special case: inverter or buffer
+    // special case: inverter or buffer -> need to consider or not?
     if (v->fanins.size() == 1) {
+        assert(th2aigNode.find(v->fanins[0]) != th2aigNode.end());
         if (v->weights[0] == 1 && v->value == 1) { // buffer
-            assert(th2aigNode.find(v->fanins[0]) != th2aigNode.end());
-            return th2aigNode.find(v->fanins[0])->second;
+            return th2aigNode[v->fanins[0]];
         } else if (v->weights[0] == -1 && !v->value) { // inverter
-            
+            return Abc_ObjNot(th2aigNode[v->fanins[0]]);
         }
     }
 
@@ -109,7 +109,7 @@ Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
     }
     if (max < v->value) { //const0
         return Abc_ObjNot(Abc_AigConst1(pNtk_th2mux));
-    } else if (min > v->value) { // const1
+    } else if (min >= v->value) { // const1
         return Abc_AigConst1(pNtk_th2mux);
     }
 
@@ -131,13 +131,13 @@ Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
 
     // line 07~09 : set controlling input/data zero input/data one input
     assert(th2aigNode.find(max_weight_node) != th2aigNode.end());
-    root = Abc_AigMux(pNtk_th2mux->pManFunc, th2aigNode[max_weight_node], thg2mux_recur(pos_v), thg2mux_recur(neg_v));
-    // line 10 : set primary output
+    root = Abc_AigMux(pNtk_th2mux->pManFunc, th2aigNode[max_weight_node], thg2mux_recur(pos_v, pNtk_th2mux), thg2mux_recur(neg_v, pNtk_th2mux));
     return root;
 }
 
 void Lsv_th2mux() {
-    int i;
+    int i, j;
+    vector<Th_Node*> th_PO_list; 
     // sort th_list in topologocal order
     sort_th();
 
@@ -155,6 +155,7 @@ void Lsv_th2mux() {
             th2aigNode[th_list[i]] = Abc_NtkCreatePi(pNtk_th2mux);
         }
         else if (th_list[i]->type == TH_PO) {
+            th_PO_list.push_back(th_list[i]);
             th2aigNode[th_list[i]] = Abc_NtkCreatePo(pNtk_th2mux);
         }
     }
@@ -166,7 +167,15 @@ void Lsv_th2mux() {
         }
     }
 
-    // connect Po
-
+    // line 10 : set primary output (connect Po)
+    for (i = 0; i < th_PO_list.size(); i++) {
+        for (j = 0; j < th_PO_list[i]->fanins.size(); j++) {
+            if (th_PO_list[i]->weights[j] == 1) { // buffer
+                Abc_ObjAddFanin(th2aigNode[th_PO_list[i]], th2aigNode[th_PO_list[i]->fanins[j]]);
+            } else if (th_PO_list[i]->weights[j] == -1) { // inverter
+                Abc_ObjAddFanin(th2aigNode[th_PO_list[i]], Abc_ObjNot(th2aigNode[th_PO_list[i]->fanins[j]]));
+            } else { assert(0); }
+        }
+    }
     
 }
