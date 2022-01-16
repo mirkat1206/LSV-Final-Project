@@ -64,7 +64,7 @@ Th_Node* Lsv_invert(Th_Node* u) {
 }
 
 int find_int(int numerator, int denominator) {
-
+    return (numerator/denominator + (numerator%denominator != 0));
 }
 
 // ------------------
@@ -101,26 +101,36 @@ KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_
 
     // 3. compute K and L
     int Tu_min_fu = u->value - min_fu;
-    int max_fu_Tu = max_fu;
+    int max_fu_Tu = max_fu - u->value;
+    bool flag1 = (1 > max_fu_Tu*(b1-1)) ? 1 : 0;
+    bool flag2 = (b1 > (b1-1)*Tu_min_fu) ? 1 : 0;
     KL_Pair* pair = new KL_Pair();
+    pair->k = -1;
+    pair->l = -1;
     if (condition[0] && condition[1]) { // inq1~3
-        
+        if (flag1 && flag2) {
+            pair->l = std::max(find_int((max_fu_Tu+1), (1-(max_fu_Tu*(b1-1)))), find_int(Tu_min_fu, (b1-((b1-1)*Tu_min_fu))));
+            pair->k = pair->l*(b1-1)+1;
+        } 
     } else if (condition[0]) { // inq1,3
-        if (1 > max_fu_Tu*(b1-1)) {
+        if (flag1) {
             pair->l = find_int((max_fu_Tu+1), (1-(max_fu_Tu*(b1-1))));
             pair->k = pair->l*(b1-1)+1;
+        } else {
+            printf("calc KL condition weird!");
         }
     } else if (condition[1]) { // inq 2,3
-        if (b1 > (b1-1)*Tu_min_fu) {
+        if (flag2) {
             pair->l = find_int(Tu_min_fu, (b1-((b1-1)*Tu_min_fu)));
             pair->k = pair->l*(b1-1)+1;
         } else {
-            printf("condition weird!");
+            printf("calc KL condition weird!");
         }
     } else { // inq 3 only
         pair->l = 1;
         pair->k = b1;
     }
+    return pair;
 }
 
 // ------------------
@@ -136,6 +146,7 @@ bool Lsv_is_pair_collapsable(Th_Node* u, Th_Node* v) {  //TODO
         f_invert = true;
     }
     KL_Pair* kl_pair = Lsv_calculateKL(u, v, n_fanin, weight, f_invert);
+    if (kl_pair->l == -1 && kl_pair->k == -1) return false;
 }
 
 bool Lsv_is_collapsable(Th_Node* u, int bound) {
