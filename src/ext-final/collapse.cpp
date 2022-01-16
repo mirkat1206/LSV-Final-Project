@@ -72,17 +72,17 @@ KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_
     condition[0] = false; // 
     condition[1] = false;
     
-    int Tu = (f_invert) ? (u->value + weight) : (u->value);
-    int max = 0, min = 0, size = u->fanins.size();
+    int Tv = (f_invert) ? (v->value + weight) : (v->value);
+    int max = 0, min = 0, size = v->fanins.size();
     for (int i = 0; i < size; ++i) {
         if (i == n_fanin)   
             continue;
         if (v->weights[i] > 0)  max += v->weights[i];
         if (v->weights[i] < 0)  min += v->weights[i];
     }
-    if (max >= Tu)
+    if (min <= Tv - weight - 1)
         condition[0] = true;
-    if (min <= Tu - weight - 1)
+    if (max >= Tv)
         condition[1] = true;
 
     // ===== coefficients ===== //
