@@ -41,7 +41,7 @@ extern vector<Th_Node*> th_PI_list;
 extern int globalref;
 
 extern void Lsv_aig2th(Abc_Ntk_t*);
-extern void Lsv_collapse(int max_bound);
-extern void Lsv_PrintTh();
+extern void Lsv_collapse(int);
+extern void Lsv_PrintTh(bool);
 
 #endif

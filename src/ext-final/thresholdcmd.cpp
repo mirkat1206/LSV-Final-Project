@@ -98,8 +98,8 @@ usage:
     return 1;
 }
 
-void Lsv_PrintTh() {
-    printf("Print threshold logic ckt in topological order...\n");
+void Lsv_PrintTh(bool flag) {
+    printf("In printTh\n");
     int i, j;
     int _numPi = 0, _numPo = 0, _numNode = 0;
     queue<Th_Node*> pr_queue;
@@ -123,10 +123,12 @@ void Lsv_PrintTh() {
 
     
     // print in topological order
+    printf("Print threshold logic ckt in topological order...\n");
     Th_Node* temp;
     bool ready;
     while (!pr_queue.empty()) {
         temp = pr_queue.front();
+        if (flag) printf("temp id: %d\n", temp->id);
         pr_queue.pop();
         if (!temp->printref) {
             // check if all its fanin are already print
@@ -137,6 +139,7 @@ void Lsv_PrintTh() {
                 }
             }
             if (ready) {
+                assert(temp->type == TH_PO || temp->type == TH_NODE);
                 if (temp->type == TH_PO) { 
                     _numPo++; 
                 }
@@ -146,10 +149,6 @@ void Lsv_PrintTh() {
                         pr_queue.push(temp->fanouts[j]);
                     }
                 }
-                else {
-                    printf("Find something wrong: id %d -> type %d\n", temp->id, temp->type);
-                }
-
                 temp->printref = true;
             } else {
                 pr_queue.push(temp);
@@ -184,7 +183,7 @@ int Lsv_CommandPrintTh(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_Print(-1, "Empty network.\n");
     return 1;
   }
-  Lsv_PrintTh();
+  Lsv_PrintTh(0);
   return 0;
 
 usage:
