@@ -95,7 +95,7 @@ KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_
     // max{fu+} & min{fu+}
     for (i = 0; i < u->weights.size(); i++) {
         if (u->weights[i] > 0) max_fu += u->weights[i];
-        else min_fu += u->weights[i]; // <=0
+        else min_fu += u->weights[i];
     } 
     int b1 = v->weights[n_fanin];
 
