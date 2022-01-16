@@ -63,6 +63,10 @@ Th_Node* Lsv_invert(Th_Node* u) {
     return inv_u;
 }
 
+int find_int(int numerator, int denominator) {
+
+}
+
 // ------------------
 KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_invert) {
     assert(!Lsv_skip_node(u));
@@ -87,22 +91,32 @@ KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_
 
     // ===== coefficients ===== //
     int i;
-    int max_fu = 0, min_fv = 0;
+    int max_fu = 0, min_fu = 0;
     // max{fu+} & min{fu+}
     for (i = 0; i < u->weights.size(); i++) {
         if (u->weights[i] > 0) max_fu += u->weights[i];
-        else min_fv += u->weights[i]; // <=0
+        else min_fu += u->weights[i]; // <=0
     } 
     int b1 = v->weights[n_fanin];
 
     // 3. compute K and L
+    int Tu_min_fu = u->value - min_fu;
+    int max_fu_Tu = max_fu;
     KL_Pair* pair = new KL_Pair();
     if (condition[0] && condition[1]) { // inq1~3
-
+        
     } else if (condition[0]) { // inq1,3
-    
+        if (1 > max_fu_Tu*(b1-1)) {
+            pair->l = find_int((max_fu_Tu+1), (1-(max_fu_Tu*(b1-1))));
+            pair->k = pair->l*(b1-1)+1;
+        }
     } else if (condition[1]) { // inq 2,3
-
+        if (b1 > (b1-1)*Tu_min_fu) {
+            pair->l = find_int(Tu_min_fu, (b1-((b1-1)*Tu_min_fu)));
+            pair->k = pair->l*(b1-1)+1;
+        } else {
+            printf("condition weird!");
+        }
     } else { // inq 3 only
         pair->l = 1;
         pair->k = b1;
