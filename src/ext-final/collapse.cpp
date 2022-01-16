@@ -67,14 +67,24 @@ Th_Node* Lsv_invert(Th_Node* u) {
 KL_Pair* Lsv_calculateKL(Th_Node* u, Th_Node* v,int n_fanin, int weight, bool f_invert) {
     assert(!Lsv_skip_node(u));
     assert(!Lsv_skip_node(v));
-    // TODO
     // 1. check conditions
     bool condition[2];
     condition[0] = false;
     condition[1] = false;
-    condition[2] = false;
-    
+    int Tu = (f_invert) ? (u->value + weight) : (u->value);
+    int max = 0, min = 0, size = u->fanins.size();
+    for (int i = 0; i < size; ++i) {
+        if (i == n_fanin)   
+            continue;
+        if (v->weights[i] > 0)  max += v->weights[i];
+        if (v->weights[i] < 0)  min += v->weights[i];
+    }
+    if (max >= Tu)
+        condition[0] = true;
+    if (min <= Tu - weight - 1)
+        condition[1] = true;
     // 2. compute coefficients
+
     // 3. compute K and L
 }
 
