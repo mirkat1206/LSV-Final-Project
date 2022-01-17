@@ -79,14 +79,15 @@ Th_Node* createTempNode() {
 
 Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
     // special case: inverter or buffer -> need to consider or not?
-    if (v->fanins.size() == 1) {
+    if (v->fanins.size() == 1) { // terminate case
         assert(th2aigNode.find(v->fanins[0]) != th2aigNode.end());
-        // TODO not good enough!!
-        if (v->weights[0] == 1 && v->value == 1) { // buffer
-            return th2aigNode[v->fanins[0]];
-        } else if (v->weights[0] == -1 && !v->value) { // inverter
-            return Abc_ObjNot(th2aigNode[v->fanins[0]]);
-        }
+        if (v->weights[0] >= v->value) {
+            if (v->value > 0) { return (th2aigNode[v->fanins[0]]); }
+            else { return Abc_AigConst1(pNtk_th2mux); }
+        } else { // <
+            if (v->value > 0) { return Abc_ObjNot(Abc_AigConst1(pNtk_th2mux)); }
+            else { return Abc_ObjNot(th2aigNode[v->fanins[0]]); }
+        }   
     }
 
     // line 01~04 : special case -> const1 & const0
@@ -132,7 +133,7 @@ Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
 
     // line 07~09 : set controlling input/data zero input/data one input
     assert(th2aigNode.find(max_weight_node) != th2aigNode.end());
-    root = Abc_AigMux(pNtk_th2mux->pManFunc, th2aigNode[max_weight_node], thg2mux_recur(pos_v, pNtk_th2mux), thg2mux_recur(neg_v, pNtk_th2mux));
+    root = Abc_AigMux((Abc_Aig_t*)pNtk_th2mux->pManFunc, th2aigNode[max_weight_node], thg2mux_recur(pos_v, pNtk_th2mux), thg2mux_recur(neg_v, pNtk_th2mux));
     return root;
 }
 
