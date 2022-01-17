@@ -115,6 +115,7 @@ int Lsv_CommandCollapse(Abc_Frame_t* pAbc, int argc, char** argv) {
         return 1;
     }
     bound = 100;
+    printf("bound: %d\n", bound);
     Lsv_collapse(bound);
     return 0;
 

@@ -10,7 +10,7 @@ void sort_th() {
     vector<Th_Node*> th_list_copy;
     th_list_copy.assign(th_list.begin(), th_list.end());
     th_list.clear();
-    cout << "copy size: " << th_list_copy.size() << endl;
+    // cout << "copy size: " << th_list_copy.size() << endl;
 
     int i, j;
     queue<Th_Node*> pr_queue;
@@ -61,7 +61,7 @@ void sort_th() {
             }
         } 
     }
-    cout << "ori size: " << th_list.size() << endl;
+    // cout << "ori size: " << th_list.size() << endl;
     return;
 }
 
@@ -138,6 +138,7 @@ Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
 }
 
 void Lsv_th2mux() {
+    cout << "Convert threshold logic gate to mux tree..." << endl;
     int i, j;
     vector<Th_Node*> th_PO_list; 
     // sort th_list in topologocal order
@@ -179,5 +180,5 @@ void Lsv_th2mux() {
             } else { assert(0); }
         }
     }
-    
+    cout << "Finish!" << endl;
 }
