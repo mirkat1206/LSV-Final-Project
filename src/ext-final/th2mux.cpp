@@ -81,6 +81,7 @@ Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
     // special case: inverter or buffer -> need to consider or not?
     if (v->fanins.size() == 1) {
         assert(th2aigNode.find(v->fanins[0]) != th2aigNode.end());
+        // TODO not good enough!!
         if (v->weights[0] == 1 && v->value == 1) { // buffer
             return th2aigNode[v->fanins[0]];
         } else if (v->weights[0] == -1 && !v->value) { // inverter
@@ -88,7 +89,7 @@ Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
         }
     }
 
-    // line 01~04 : special case -> const1 & const2
+    // line 01~04 : special case -> const1 & const0
     // line 05 : find max abs weight input
     Th_Node* max_weight_node = v->fanins[0];
     int max_weight = v->weights[0];
