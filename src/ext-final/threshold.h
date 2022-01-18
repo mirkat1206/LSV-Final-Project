@@ -2,6 +2,8 @@
 #define THRESHOLD_H_
 
 #include "base/abc/abc.h"
+#include "base/main/main.h"
+#include "base/main/mainInt.h"
 #include <vector>
 
 using namespace std;
@@ -24,6 +26,7 @@ struct Th_Node_
     vector<int> weights;
     vector<Th_Node_*> fanins;
     vector<Th_Node_*> fanouts;
+    char* name;
     int value;
     bool printref;
 };
@@ -43,6 +46,6 @@ extern int globalref;
 extern void Lsv_aig2th(Abc_Ntk_t*);
 extern void Lsv_collapse(int);
 extern void Lsv_PrintTh(bool);
-extern void Lsv_th2mux();
+extern void Lsv_th2mux(Abc_Frame_t*);
 
 #endif

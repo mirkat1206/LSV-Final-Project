@@ -10,6 +10,7 @@ Th_Node* createNode(Th_Node_Type _type, unsigned _id) {
 	thObj->fanouts    = vector<Th_Node*>();
 	thObj->value      = 0;
     thObj->printref   = false;
+    thObj->name       = NULL;
     th_list.push_back(thObj);
     if (_type == TH_PI) th_PI_list.push_back(thObj);
 	return thObj;
@@ -36,6 +37,7 @@ void Lsv_aig2th(Abc_Ntk_t* pNtk) {
     Abc_NtkForEachCi(pNtk,pObj,i) {
         thNode = createNode(TH_PI, Abc_ObjId(pObj));
         // printf("Ci id: %d\n", thNode->id);
+        thNode->name = Abc_ObjName(pObj);
         _id2ThNode[thNode->id] = thNode;
     }
 
@@ -43,6 +45,7 @@ void Lsv_aig2th(Abc_Ntk_t* pNtk) {
     // printf("create Co ...\n");
     Abc_NtkForEachCo(pNtk,pObj,i) {
         thNode = createNode(TH_PO, Abc_ObjId(pObj));
+        thNode->name = Abc_ObjName(pObj);
         // printf("Co id: %d\n", thNode->id);
         _id2ThNode[thNode->id] = thNode;
     }

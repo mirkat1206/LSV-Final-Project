@@ -137,7 +137,7 @@ Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
     return root;
 }
 
-void Lsv_th2mux() {
+void Lsv_th2mux(Abc_Frame_t* pAbc) {
     cout << "Convert threshold logic gate to mux tree..." << endl;
     int i, j;
     vector<Th_Node*> th_PO_list; 
@@ -156,10 +156,12 @@ void Lsv_th2mux() {
     for (i = 0; i < th_list.size(); i++) {
         if (th_list[i]->type == TH_PI) {
             th2aigNode[th_list[i]] = Abc_NtkCreatePi(pNtk_th2mux);
+            Abc_ObjAssignName(th2aigNode[th_list[i]], th_list[i]->name, NULL);
         }
         else if (th_list[i]->type == TH_PO) {
             th_PO_list.push_back(th_list[i]);
             th2aigNode[th_list[i]] = Abc_NtkCreatePo(pNtk_th2mux);
+            Abc_ObjAssignName(th2aigNode[th_list[i]], th_list[i]->name, NULL);
         }
     }
 
@@ -181,4 +183,5 @@ void Lsv_th2mux() {
         }
     }
     cout << "Finish!" << endl;
+    pAbc->pNtkCur = pNtk_th2mux;
 }
