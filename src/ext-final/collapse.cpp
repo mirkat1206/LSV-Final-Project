@@ -329,7 +329,7 @@ void Lsv_collapse(int max_bound) {
     // *** set a bound to the fanout size and iteratively increases the bound ***
     Th_Node* v;
     Th_Node* u;
-    Lsv_PrintTh(0);
+    // Lsv_PrintTh(0);
     for (int bound = 1; bound <= max_bound; bound++) {
         // cout << "bound: " << bound << endl;
         // 01: unmark every v of V;
@@ -382,6 +382,6 @@ void Lsv_collapse(int max_bound) {
         } while(f_has_collapsed);   
         // Lsv_PrintTh(0);     
     }
-    Lsv_PrintTh(0); 
+    // Lsv_PrintTh(0); 
     // 15: return (V,E)
 }

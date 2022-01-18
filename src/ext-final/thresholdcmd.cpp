@@ -114,7 +114,7 @@ int Lsv_CommandCollapse(Abc_Frame_t* pAbc, int argc, char** argv) {
         Abc_Print(-1, "Empty network.\n");
         return 1;
     }
-    bound = 10;
+    bound = 100;
     printf("bound: %d\n", bound);
     Lsv_collapse(bound);
     return 0;

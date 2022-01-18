@@ -145,10 +145,10 @@ alias recadd3     "st; rec_add3; b; rec_add3; dc2; rec_add3; if -K 8; bidec; st;
 
 # for final project
 alias rben "read EPFL-benchmark-suite/random_control/ctrl.aig"
-alias read1 "read collapse/benchmark/iscas_itc/b19.blif"
-alias wbe "w collapse/result/b19_before.aig"
-alias waf "w collapse/result/b19_after.aig"
-alias wor "w collapse/result/b19_origin.aig"
+alias read1 "read collapse/benchmark/iscas_itc/b22.blif"
+alias wbe "w collapse/result/b22_before.aig"
+alias waf "w collapse/result/b22_after.aig"
+alias wor "w collapse/result/b22_origin.aig"
 
 alias a2t lsv_aig2th 
 alias pth lsv_print_th
@@ -157,9 +157,9 @@ alias col lsv_collapse
 
 alias rbe "read1; comb; a2t; pth; t2m; st; wbe; q"
 alias ror "read1; comb; st; wor; tor; q"
-alias raf "read1; comb; a2t; pth; time; col; time; t2m; st; waf; teq; q"
-alias teq "cec collapse/result/b19_before.aig collapse/result/b19_after.aig"
-alias tor "cec collapse/result/b19_before.aig collapse/result/b19_origin.aig"
+alias raf "read1; comb; a2t; pth; time; col; time; pth; t2m; st; waf; teq; q"
+alias teq "cec collapse/result/b22_before.aig collapse/result/b22_after.aig"
+alias tor "cec collapse/result/b22_before.aig collapse/result/b22_origin.aig"
 
 alias rbench "read collapse/benchmark/iscas_85/c880.bench"
 alias wbench "write_blif collapse/benchmark/iscas_85/c880.blif"
