@@ -5,6 +5,13 @@ Re-implement “Constraint Solving for Synthesis and Veriﬁcation of Threshold 
 
 
 ## Introduction
+  In our final project, we tried to re-implement the paper “Constraint Solving for Synthesis and Verification of Threshold Logic Circuits” written by Nian-Ze Lee and Jie-Hong R. Jiang from National Taiwan University, which was published on 2020 IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems.
+	
+  Since threshold logic (TL) circuits are gaining increasing attention due to their strong bind to neural network applications, the automatic synthesis and verification of TL circuits are important.
+	
+  The paper formulated the collapse operation for TL functions and a necessary and sufficient condition for collapsibility, which can achieve an average of 18% gate count reduction on top of synthesized TL circuits. It also proposed 2 ways to verify the collapsed TL circuits: TL-to-MUX tree, TL-to-PB constraints. Both ways can perform equivalence checking of TL circuits, and therefore verify the correctness of collapsed TL circuits.
+	
+  In our final project, we tried to re-implement the collapse operation for TL functions and the TL-to-MUX tree conversion for verification.
 
 
 ## Installation
