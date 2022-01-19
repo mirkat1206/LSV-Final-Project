@@ -89,9 +89,7 @@ Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
             else { return Abc_ObjNot(th2aigNode[v->fanins[0]]); }
         }   
     }
-
-    // line 01~04 : special case -> const1 & const0
-    // line 05 : find max abs weight input
+    // line 01~05
     Th_Node* max_weight_node = v->fanins[0];
     int max_weight = v->weights[0];
     int max_weight_index = 0;
@@ -107,18 +105,15 @@ Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
             max_weight = v->weights[i];
             max_weight_index = i;
         }
-        // TBD: 0-weight node ??
     }
     if (max < v->value) { //const0
         return Abc_ObjNot(Abc_AigConst1(pNtk_th2mux));
     } else if (min >= v->value) { // const1
         return Abc_AigConst1(pNtk_th2mux);
     }
-
     // line 06 : create a mux gate 
     Abc_Obj_t* root;
-    // positive & negative cofactor
-    Th_Node* pos_v = createTempNode();
+    Th_Node* pos_v = createTempNode(); // positive & negative cofactor
     Th_Node* neg_v = createTempNode();
     pos_v->value = v->value-max_weight;
     neg_v->value = v->value;
@@ -130,8 +125,7 @@ Abc_Obj_t* thg2mux_recur(Th_Node* v, Abc_Ntk_t* pNtk_th2mux) {
             neg_v->weights.push_back(v->weights[i]);
         }
     }
-
-    // line 07~09 : set controlling input/data zero input/data one input
+    // line 07~10 : set controlling input/data zero input/data one input
     assert(th2aigNode.find(max_weight_node) != th2aigNode.end());
     root = Abc_AigMux((Abc_Aig_t*)pNtk_th2mux->pManFunc, th2aigNode[max_weight_node], thg2mux_recur(pos_v, pNtk_th2mux), thg2mux_recur(neg_v, pNtk_th2mux));
     return root;
