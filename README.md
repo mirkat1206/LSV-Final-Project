@@ -97,8 +97,8 @@ alias wbe "w collapse/result/b19_before.aig"
 alias waf "w collapse/result/b19_after.aig"
 alias teq "cec collapse/result/b22_before.aig collapse/result/b22_after.aig"
 ```
-2. Start with `./abc` and run `rbe` to produce comparison result.
-2. Start with `./abc` and run `raf` to produce experimental result and verify..
+2. Start with `./abc` and type `rbe` to produce comparison result.
+2. Start with `./abc` and type `raf` to produce experimental result and verify..
 
 ## Experiments
 
