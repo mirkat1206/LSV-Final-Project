@@ -36,6 +36,60 @@ In LSV-Final-Project
 ### Helping function
 - `lsv_print_th` (alias as `pth`): print number of PI/PO/TLG.
 
+### Reproduce our experiment
+#### Produce comparison result.
+1. Read in .blif file. (Abc original command `read`)
+```
+abc01> read collapse/benchmark/iscas_itc/b19.blif
+```
+2. Make ckt combinational. (Abc original command `comb`)
+```
+abc02> comb
+```
+3. Convert circuit to threshold logic network.
+```
+abc03> lsv_aig2th
+```
+4. Convert threshold logic network to mux trees. 
+```
+abc04> lsv_th2mux
+```
+5. Write .aig file. (Abc original command `write`)
+```
+abc05> write collapse/result/b19_before.aig
+```
+
+#### Produce experiment result and verify.
+1. Read in .blif file. (Abc original command `read`)
+```
+abc01> read collapse/benchmark/iscas_itc/b19.blif
+```
+2. Make ckt combinational. (Abc original command `comb`)
+```
+abc02> comb
+```
+3. Convert circuit to threshold logic network.
+```
+abc03> lsv_aig2th
+```
+4. Collapse threshold logic network. 
+```
+abc04> lsv_collapse
+```
+5. Convert threshold logic network to mux trees. 
+```
+abc05> lsv_th2mux
+```
+6. Write .aig file. (Abc original command `write`)
+```
+abc06> write collapse/result/b19_after.aig
+```
+7. Verify. (Abc original command `cec`)
+```
+abc07> cec collapse/result/b19_before.aig collapse/result/b19_after.aig
+```
+#### Using alias for fast run 
+
 ## Experiments
 
 
