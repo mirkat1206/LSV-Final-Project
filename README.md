@@ -59,7 +59,7 @@ abc04> lsv_th2mux
 abc05> write collapse/result/b19_before.aig
 ```
 
-#### Produce experiment result and verify.
+#### Produce experimental result and verify.
 1. Read in .blif file. (Abc original command `read`)
 ```
 abc01> read collapse/benchmark/iscas_itc/b19.blif
@@ -88,7 +88,17 @@ abc06> write collapse/result/b19_after.aig
 ```
 abc07> cec collapse/result/b19_before.aig collapse/result/b19_after.aig
 ```
+
 #### Using alias for fast run 
+1. revise benckmark file path in `abc.rc` for commands.
+```
+alias read1 "read collapse/benchmark/iscas_itc/b22.blif"
+alias wbe "w collapse/result/b19_before.aig"
+alias waf "w collapse/result/b19_after.aig"
+alias teq "cec collapse/result/b22_before.aig collapse/result/b22_after.aig"
+```
+2. Start with `./abc` and run `rbe` to produce comparison result.
+2. Start with `./abc` and run `raf` to produce experimental result and verify..
 
 ## Experiments
 
