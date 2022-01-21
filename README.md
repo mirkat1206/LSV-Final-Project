@@ -108,5 +108,4 @@ alias teq "cec collapse/result/b22_before.aig collapse/result/b22_after.aig"
 2. Start with `./abc` and type `raf` to produce experimental result and verify..
 
 ## Experiments
-
-
+Please see our report for detail information.
